@@ -2,8 +2,9 @@
 
 A lightweight and native macOS menu bar application to monitor your GitLab Merge Requests in real-time. Built with SwiftUI.
 
-![SwiftUI](https://img.shields.io/badge/SwiftUI-FF3300?style=for-the-badge&logo=swift&logoColor=white)
-![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white)
+
+<img width="519" height="649" alt="Image" src="https://github.com/user-attachments/assets/3e3f4eb5-e91a-45f9-bdba-4c732ae53672" />
+
 
 ## ✨ Features
 
