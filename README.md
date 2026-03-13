@@ -1,4 +1,4 @@
-<img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/27d80d83-aaed-4d18-abdf-4ed38981e0e0" />
+<div align="center"><img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/27d80d83-aaed-4d18-abdf-4ed38981e0e0" /></div>
 
 # GitLab MR Monitor (macOS Menu Bar)
 
