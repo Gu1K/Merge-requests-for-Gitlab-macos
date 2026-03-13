@@ -1,3 +1,5 @@
+<img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/27d80d83-aaed-4d18-abdf-4ed38981e0e0" />
+
 # GitLab MR Monitor (macOS Menu Bar)
 
 A lightweight and native macOS menu bar application to monitor your GitLab Merge Requests in real-time. Built with SwiftUI.
