@@ -54,11 +54,14 @@ struct ContentView: View {
     }
     
     var footer: some View {
-        HStack {
+        HStack(spacing: 15) {
             SettingsLink { Image(systemName: "gearshape") }.buttonStyle(.plain)
             Button { Task { await viewModel.fetchAll(token: apiToken) } } label: {
                 Image(systemName: "arrow.clockwise")
             }.buttonStyle(.plain)
+            Button { withAnimation { viewModel.markAllAsRead() } } label: {
+                Image(systemName: "checkmark.circle")
+            }.buttonStyle(.plain).help("Marquer tout comme lu")
             Spacer()
             if viewModel.isLoading { ProgressView().controlSize(.small) }
             Spacer()
@@ -72,27 +75,41 @@ struct MRRow: View {
     let mr: MergeRequest
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Colonne Avatar + Badge de commentaires
             VStack(spacing: 6) {
-                AsyncImage(url: URL(string: mr.author.avatarUrl ?? "")) { image in
-                    image.resizable()
-                } placeholder: {
-                    Circle().fill(Color.gray.opacity(0.3))
+                ZStack(alignment: .bottomTrailing) {
+                    AsyncImage(url: URL(string: mr.author.avatarUrl ?? "")) { image in
+                        image.resizable()
+                    } placeholder: {
+                        Circle().fill(Color.gray.opacity(0.3))
+                    }
+                    .frame(width: 36, height: 36)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(statusColor, lineWidth: mr.approvalStatus != .none ? 3 : 0)
+                    )
+
+                    if mr.approvalStatus == .approved {
+                        Image(systemName: "checkmark.seal.fill")
+                            .resizable()
+                            .frame(width: 14, height: 14)
+                            .foregroundColor(.green)
+                            .background(Color.white.clipShape(Circle()))
+                            .offset(x: 4, y: 4)
+                    }
                 }
-                .frame(width: 36, height: 36).clipShape(Circle())
                 
-                // Badge de commentaires plus gros
                 if mr.userNotesCount > 0 {
+                    let hasNew = mr.hasNewComments()
                     Text("\(mr.userNotesCount)")
                         .font(.system(size: 10, weight: .bold))
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .background(Color.primary.opacity(0.1))
-                        .foregroundColor(.primary.opacity(0.8))
+                        .padding(.horizontal, 7).padding(.vertical, 3)
+                        .background(hasNew ? Color.red : Color.primary.opacity(0.1))
+                        .foregroundColor(hasNew ? .white : .primary.opacity(0.8))
                         .clipShape(Capsule())
                 }
             }
-            .frame(width: 44) // Largeur ajustée pour le badge plus gros
+            .frame(width: 44)
             
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .top) {
@@ -100,6 +117,7 @@ struct MRRow: View {
                         Text("DRAFT").font(.system(size: 9, weight: .bold)).padding(.horizontal, 4).padding(.vertical, 2).background(Color.gray.opacity(0.2)).cornerRadius(4)
                     }
                     Text(mr.title).fontWeight(.semibold).font(.system(size: 14)).lineLimit(2)
+                        .foregroundColor(mr.approvalStatus == .approved ? .secondary : .primary)
                 }
                 HStack(spacing: 4) {
                     Text(mr.references.full).fontWeight(.bold)
@@ -125,6 +143,14 @@ struct MRRow: View {
         .onTapGesture { if let url = URL(string: mr.webUrl) { NSWorkspace.shared.open(url) } }
     }
     
+    var statusColor: Color {
+        switch mr.approvalStatus {
+        case .approved: return .green
+        case .requestChanges: return .red
+        case .none: return .clear
+        }
+    }
+    
     func labelColor(_ label: String) -> Color {
         let l = label.lowercased()
         if l.contains("feature") || l.contains("🚀") { return .blue }
@@ -136,16 +162,11 @@ struct MRRow: View {
 struct SettingsView: View {
     @AppStorage("gitlabToken") private var apiToken: String = ""
     @AppStorage("refreshInterval") private var refreshInterval: Double = 30.0
-    
     var body: some View {
         Form {
             Section {
-                SecureField("GitLab Personal Access Token :", text: $apiToken)
-                    .textFieldStyle(.roundedBorder)
-            } header: {
-                Text(L10n.configTitle).fontWeight(.bold)
-            }
-            
+                SecureField("GitLab Personal Access Token :", text: $apiToken).textFieldStyle(.roundedBorder)
+            } header: { Text(L10n.configTitle).fontWeight(.bold) }
             Section {
                 Picker(L10n.refreshDelay, selection: $refreshInterval) {
                     Text("15 \(L10n.seconds)").tag(15.0)
